@@ -62,6 +62,34 @@ async function extractTableData(link) {
 }
 
 // Route to insert data into Firebase Realtime Database
+const encodeFirebaseKey = (key) => {
+  // Encode the key to replace forbidden characters
+  return key.replace(/[.#$[\]/]/g, (match) => {
+    return {
+      '.': ',',
+      '#': '_',
+      '$': '-',
+      '[': '(',
+      ']': ')',
+      '/': '|'
+    }[match];
+  });
+};
+
+const decodeFirebaseKey = (key) => {
+  // Decode the key to original form
+  return key.replace(/[,_\-()|]/g, (match) => {
+    return {
+      ',': '.',
+      '_': '#',
+      '-': '$',
+      '(': '[',
+      ')': ']',
+      '|': '/'
+    }[match];
+  });
+};
+
 app.post('/insertData', async (req, res) => {
   try {
     const { link } = req.body;
@@ -69,13 +97,21 @@ app.post('/insertData', async (req, res) => {
 
     // Initialize the Firebase Realtime Database reference
     const db = admin.database();
-    const ref = db.ref('ComponentIndex'); // Reference to the ComponentIndex
+    const ref = db.ref('Component');
 
-    // Generate custom key based on the 'Item'
-    const itemKey = `Component_${tableData[0]['Item']}`;
+    // Iterate through each item in the tableData array
+    tableData.forEach((itemData) => {
+      // Generate a custom key based on the 'Item' for each item
+      const itemKey = encodeFirebaseKey(`Component_${itemData['Item']}`);
 
-    // Set the data using the custom key
-    ref.child(itemKey).set(tableData);
+      // Set the data using the custom key for each item
+      ref.child(itemKey).set({
+        Drawing: itemData['Drawing'],
+        Item: itemData['Item'],
+        'Item Rev': itemData['Item Rev'],
+        
+      });
+    });
 
     res.status(200).json({ message: 'Data inserted successfully' });
   } catch (error) {
@@ -83,11 +119,13 @@ app.post('/insertData', async (req, res) => {
   }
 });
 
-
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
+
+
 
 
 //const link = 'https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD'
