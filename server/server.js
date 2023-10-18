@@ -130,8 +130,28 @@ app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
+// Function to fetch data from Firebase
+const fetchDataFromFirebase = async () => {
+  try {
+    const db = admin.database();
+    const ref = db.ref('Component');
 
+    const snapshot = await ref.once('value');
+    return snapshot.val();
+  } catch (error) {
+    throw error;
+  }
+};
 
+// API endpoint to fetch data
+app.get('/api/fetch-data', async (req, res) => {
+  try {
+    const data = await fetchDataFromFirebase();
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 //const link = 'https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD'

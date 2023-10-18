@@ -11,7 +11,12 @@ export default function Products() {
     fetch('http://localhost:3000/api/fetch-data') // Replace with your API endpoint
       .then(response => response.json())
       .then(data => {
-        setData(data); // Set the fetched data to the state
+        // Convert the object to an array of objects
+        const dataArray = Object.keys(data).map(key => ({
+          key,
+          ...data[key]
+        }));
+        setData(dataArray); // Set the fetched data to the state
       })
       .catch(error => console.error('Error fetching data:', error));
   }, []);
@@ -27,34 +32,22 @@ export default function Products() {
                 <h5 className="card-title fw-semibold mb-4 text-info">SLE Orders Management</h5>
                 <div className="table-responsive">
                   <table className="table text-nowrap mb-0 align-middle text-center">
-                  <thead className="text-dark fs-4">
+                    <thead className="text-dark fs-4">
                       <tr>
                         <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">PORef</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Product Description</h6>
+                          <h6 className="fw-semibold mb-0">Item</h6>
                         </th>
                         <th className="border-bottom-0">
                           <h6 className="fw-semibold mb-0">Buyer</h6>
                         </th>
                         <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Qty_Ordered</h6>
+                          <h6 className="fw-semibold mb-0">Drawing</h6>
                         </th>
                         <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Due_Date</h6>
+                          <h6 className="fw-semibold mb-0">Qty Ordered</h6>
                         </th>
                         <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Promised_Date</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Current Cost</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Drawing ID</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Drawing File URL</h6>
+                          <h6 className="fw-semibold mb-0">Due Date / Promised Date</h6>
                         </th>
                         <th className="border-bottom-0">
                           <h6 className="fw-semibold mb-0">Material Supplier</h6>
@@ -70,14 +63,30 @@ export default function Products() {
                     <tbody>
                       {data.map((row, index) => (
                         <tr key={index}>
-                          {/* Populate the table with data from the API response */}
                           <td className="border-bottom-0">
-                            <h6 className="fw-semibold mb-0">{row.PORef}</h6>
+                            <h6 className="fw-semibold mb-0">{row['Item']}</h6>
                           </td>
                           <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row.ProductDescription}</p>
+                            <p className="mb-0 fw-normal">{row['Buyer']}</p>
                           </td>
-                          {/* Add the rest of the table columns */}
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Drawing']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Qty Ordered']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Due DatePromised Date']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Material Supplier']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Material Available']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Notes']}</p>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
