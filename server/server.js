@@ -7,7 +7,7 @@ const serviceAccount = require('./creds/service-account-key.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  databaseURL: 'https://sledb-29e51-default-rtdb.asia-southeast1.firebasedatabase.app',
 });
 
 const app = express();
@@ -16,50 +16,73 @@ app.use(express.json());
 
 // Function to extract table data from a given link
 async function extractTableData(link) {
-    try {
-        const response = await axios.get(link);
-        if (response.status === 200) {
-            const $ = cheerio.load(response.data);
-        
-        // Select the table element you want to scrape.
-        const table = $('table'); // Replace 'table' with your specific selector.
-        
-        // Iterate through the rows of the table and extract data.
-        table.find('tr').each((index, row) => {
-        const columns = $(row).find('td'); // Change 'td' to 'th' or other selectors if needed.
-        
-         // Process and log or store the data as needed.
-        const rowData = columns.map((index, column) => $(column).text()).get();
-        console.log(new Response(JSON.stringify(rowData)));
-        return new Response(JSON.stringify(rowData)),link
-        });
-        } else {
-        console.error('Failed to fetch the page.');
+  try {
+    const response = await axios.get(link);
+    if (response.status === 200) {
+      const $ = cheerio.load(response.data);
+
+      // Find the table by any means (class, ID, or any selector).
+      const table = $('table'); // You can use a specific selector here if needed.
+
+      const tableData = [];
+
+      const headers = [];
+
+      table.find('tr').each((rowIndex, row) => {
+        const columns = $(row).find('td'); // You can change 'td' to 'th' or other selectors if needed.
+
+        if (columns.length > 0) {
+          const rowData = {};
+
+          columns.each((colIndex, column) => {
+            if (rowIndex === 0) {
+              // Handle the header row
+              headers.push($(column).text().trim());
+            } else {
+              // Handle the data rows
+              rowData[headers[colIndex]] = $(column).text().trim();
+            }
+          });
+
+          if (rowIndex > 0) {
+            tableData.push(rowData);
+          }
         }
-        } catch (error) {
-        console.error('Error:', error);
-        }
+      });
+
+      return tableData;
+    } else {
+      console.error('Failed to fetch the page.');
+      return null;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
   }
+}
 
-// // Route to insert data into Firebase Realtime Database
-// app.post('/insertData', async (req, res) => {
-//   try {
-//     const { link } = req.body;
-//     const tableData = await extractTableData(link);
+// Route to insert data into Firebase Realtime Database
+app.post('/insertData', async (req, res) => {
+  try {
+    const { link } = req.body;
+    const tableData = await extractTableData(link);
 
-//     // Initialize the Firebase Realtime Database reference
-//     const db = admin.database();
-//     const ref = db.ref('your-database-path');
+    // Initialize the Firebase Realtime Database reference
+    const db = admin.database();
+    const ref = db.ref('ComponentIndex'); // Reference to the ComponentIndex
 
-//     // Push the table data to the database
-//     const newRef = ref.push();
-//     newRef.set(tableData);
+    // Generate custom key based on the 'Item'
+    const itemKey = `Component_${tableData[0]['Item']}`;
 
-//     res.status(200).json({ message: 'Data inserted successfully' });
-//   } catch (error) {
-//     res.status(500).json({ error: error.message });
-//   }
-// });
+    // Set the data using the custom key
+    ref.child(itemKey).set(tableData);
+
+    res.status(200).json({ message: 'Data inserted successfully' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
@@ -67,5 +90,56 @@ app.listen(port, () => {
 });
 
 
-const link = 'https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD'
-extractTableData(link)
+//const link = 'https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD'
+//extractTableData(link)
+
+
+
+// async function extractTableData(link) {
+//   try {
+//     const response = await axios.get(link);
+//     if (response.status === 200) {
+//       const $ = cheerio.load(response.data);
+
+//       // Find the table by any means (class, ID, or any selector).
+//       const table = $('table'); // You can use a specific selector here if needed.
+
+//       const tableData = [];
+
+//       table.find('tr').each((rowIndex, row) => {
+//         const columns = $(row).find('td'); // You can change 'td' to 'th' or other selectors if needed.
+
+//         if (columns.length > 0) {
+//           const rowData = {};
+
+//           columns.each((colIndex, column) => {
+//             rowData[`Column ${colIndex + 1}`] = $(column).text().trim();
+//           });
+
+//           tableData.push(rowData);
+//         }
+//       });
+
+//       return tableData;
+//     } else {
+//       console.error('Failed to fetch the page.');
+//       return null;
+//     }
+//   } catch (error) {
+//     console.error('Error:', error);
+//     return null;
+//   }
+// }
+
+// // Example usage:
+// extractTableData('https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD')
+//   .then((result) => {
+//     if (result) {
+//       console.log('Table Data:', result);
+//     } else {
+//       console.log('No data extracted.');
+//     }
+//   })
+//   .catch((error) => {
+//     console.error('Error:', error);
+//   });
