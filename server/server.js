@@ -109,7 +109,13 @@ app.post('/insertData', async (req, res) => {
         Drawing: itemData['Drawing'],
         Item: itemData['Item'],
         'Item Rev': itemData['Item Rev'],
-        
+        Buyer : itemData['Buyer'],
+        'Qty Ordered' : itemData['Qty Ordered'],
+        'Qty Due' : itemData['Qty Due'],
+        'Due DatePromised Date' : itemData['Due DatePromised Date'],
+        'Material Supplier' : itemData['Material Supplier'],
+        'Material Available' : itemData['Material Available'],
+        Notes : itemData['Notes'],
       });
     });
 
