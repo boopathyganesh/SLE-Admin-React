@@ -1,19 +1,40 @@
 import { useEffect, useState } from 'react';
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import Modal from 'react-bootstrap/Modal';
+import Button from 'react-bootstrap/Button';
 import '../styles/globals.css';
 
 export default function Orders() {
   const [data, setData] = useState([]); // State to hold the fetched data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  const [showModal, setShowModal] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const handleModalOpen = (item) => {
+    setSelectedItem(item);
+    setShowModal(true);
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+  };
 
   useEffect(() => {
     // Fetch data from your API
     fetch('http://localhost:3000/api/fetch-data') // Replace with your API endpoint
-      .then(response => response.json())
-      .then(data => {
-        setData(data); // Set the fetched data to the state
+      .then((response) => response.json())
+      .then((data) => {
+        // Convert the object to an array of objects
+        const dataArray = Object.keys(data).map((key) => ({
+          key,
+          ...data[key],
+        }));
+        setData(dataArray); // Set the fetched data to the state
       })
-      .catch(error => console.error('Error fetching data:', error));
+      .catch((error) => console.error('Error fetching data:', error));
   }, []);
 
   return (
@@ -24,37 +45,21 @@ export default function Orders() {
           <div className="col-lg-12 d-flex align-items-stretch">
             <div className="card w-100">
               <div className="card-body p-4">
-                <h5 className="card-title fw-semibold mb-4 text-info">SLE Orders Management</h5>
+                <h5 className="card-title fw-semibold mb-4 text-voilet">
+                  SLE Orders Management
+                </h5>
                 <div className="table-responsive">
-                  <table className="table text-nowrap mb-0 align-middle text-center">
-                  <thead className="text-dark fs-4">
-                      <tr>
+                  <table className="table text-nowrap mb-0 align-middle">
+                    <thead className="text-dark fs-4">
+                      <tr className="text-center">
                         <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">PORef</h6>
+                          <h6 className="fw-semibold mb-0">Item</h6>
                         </th>
                         <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Product Description</h6>
+                          <h6 className="fw-semibold mb-0">Drawing</h6>
                         </th>
                         <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Buyer</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Qty_Ordered</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Due_Date</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Promised_Date</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Current Cost</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Drawing ID</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Drawing File URL</h6>
+                          <h6 className="fw-semibold mb-0">Qty Ordered</h6>
                         </th>
                         <th className="border-bottom-0">
                           <h6 className="fw-semibold mb-0">Material Supplier</h6>
@@ -70,14 +75,27 @@ export default function Orders() {
                     <tbody>
                       {data.map((row, index) => (
                         <tr key={index}>
-                          {/* Populate the table with data from the API response */}
                           <td className="border-bottom-0">
-                            <h6 className="fw-semibold mb-0">{row.PORef}</h6>
+                            <a href="#" className="fw-semibold mb-0" onClick={() => handleModalOpen(row)}>
+                              {row['Item']}
+                            </a>
                           </td>
                           <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row.ProductDescription}</p>
+                            <p className="mb-0 fw-normal">{row['Drawing']}</p>
                           </td>
-                          {/* Add the rest of the table columns */}
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Qty Ordered']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Material Supplier']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Material Available']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Notes']}</p>
+                          </td>
+                          {/* Add other table cells here */}
                         </tr>
                       ))}
                     </tbody>
@@ -89,6 +107,63 @@ export default function Orders() {
         </div>
       </div>
       <Footer />
+
+      <Modal show={showModal} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Item Details</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedItem && (
+            <>
+              <p>Item: {selectedItem['Item']}</p>
+              <div className="form-group">
+                <label htmlFor="D_Id">Drawing ID</label>
+                <input
+                  type="text"
+                  id="D_Id"
+                  className="form-control"
+                  value={selectedItem['Description']}
+                  readOnly
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="d_url">Drawing URL</label>
+                <input
+                  type="text"
+                  id="d_url"
+                  className="form-control"
+                  value={selectedItem['Price']}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="c_cost">Current cost</label>
+                <input
+                  type="text"
+                  id="c_cost"
+                  className="form-control"
+                  value={selectedItem['Price']}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="c_cost">Quantity Ordered</label>
+                <input
+                  type="text"
+                  id="q_ord"
+                  className="form-control"
+                  value={selectedItem['Price']}
+                />
+              </div>
+              {/* Add more fields as needed */}
+            </>
+          )}
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

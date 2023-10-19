@@ -89,7 +89,7 @@ const decodeFirebaseKey = (key) => {
     }[match];
   });
 };
-
+//insert data route
 app.post('/insertData', async (req, res) => {
   try {
     const { link } = req.body;
@@ -116,6 +116,13 @@ app.post('/insertData', async (req, res) => {
         'Material Supplier' : itemData['Material Supplier'],
         'Material Available' : itemData['Material Available'],
         Notes : itemData['Notes'],
+        // Map the missing fields (Orders)
+        MaterialRequired: itemData['MaterialRequired'],
+        CostToCompany: itemData['CostToCompany'],
+        MaterialScrap: itemData['MaterialScrap'],
+        CostLog: itemData['CostLog'],
+        CurrentCost: itemData['CurrentCost'],
+        DrawingFileURL: itemData['DrawingFileURL'],
       });
     });
 

@@ -17285,3 +17285,6 @@ border-bottom: 2px groove #f7f8f8;
   @keyframes fadeOutShink  {
       to { opacity: 0; padding: 0px; height: 0px; }
   }
+  .text-voilet{
+    color:var(--bs-code-color);
+  }
