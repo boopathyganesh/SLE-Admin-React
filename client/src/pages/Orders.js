@@ -24,7 +24,7 @@ export default function Orders() {
 
   useEffect(() => {
     // Fetch data from your API
-    fetch('http://localhost:3000/api/fetch-data') // Replace with your API endpoint
+    fetch('http://sle-server.vercel.app:3000/api/fetch-data') // Replace with your API endpoint
       .then((response) => response.json())
       .then((data) => {
         // Convert the object to an array of objects

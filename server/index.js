@@ -214,3 +214,8 @@ app.get('/api/fetch-data', async (req, res) => {
 //   .catch((error) => {
 //     console.error('Error:', error);
 //   });
+
+
+
+// Export the Express API
+module.exports = app
