@@ -106,6 +106,7 @@ app.post('/insertData', async (req, res) => {
 
       // Set the data using the custom key for each item
       ref.child(itemKey).set({
+        'PO Ref': itemData['PO Ref'],
         Drawing: itemData['Drawing'],
         Item: itemData['Item'],
         'Item Rev': itemData['Item Rev'],
@@ -116,9 +117,8 @@ app.post('/insertData', async (req, res) => {
         'Material Supplier' : itemData['Material Supplier'],
         'Material Available' : itemData['Material Available'],
         Notes : itemData['Notes'],
-        // Map the missing fields (Orders)
         MaterialRequired: itemData['MaterialRequired'],
-        CostToCompany: itemData['CostToCompany'],
+        Current_cost: itemData['Current_cost'],
         MaterialScrap: itemData['MaterialScrap'],
         CostLog: itemData['CostLog'],
         CurrentCost: itemData['CurrentCost'],

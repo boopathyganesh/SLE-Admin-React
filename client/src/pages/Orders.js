@@ -52,6 +52,9 @@ export default function Orders() {
                   <table className="table text-nowrap mb-0 align-middle">
                     <thead className="text-dark fs-4">
                       <tr className="text-center">
+                      <th className="border-bottom-0">
+                          <h6 className="fw-semibold mb-0">PO_Ref</h6>
+                        </th>
                         <th className="border-bottom-0">
                           <h6 className="fw-semibold mb-0">Item</h6>
                         </th>
@@ -60,6 +63,9 @@ export default function Orders() {
                         </th>
                         <th className="border-bottom-0">
                           <h6 className="fw-semibold mb-0">Qty Ordered</h6>
+                        </th>
+                        <th className="border-bottom-0">
+                          <h6 className="fw-semibold mb-0">Current_cost</h6>
                         </th>
                         <th className="border-bottom-0">
                           <h6 className="fw-semibold mb-0">Material Supplier</h6>
@@ -76,6 +82,9 @@ export default function Orders() {
                       {data.map((row, index) => (
                         <tr key={index}>
                           <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['PO Ref']}</p>
+                          </td>
+                          <td className="border-bottom-0">
                             <a href="#" className="fw-semibold mb-0" onClick={() => handleModalOpen(row)}>
                               {row['Item']}
                             </a>
@@ -85,6 +94,9 @@ export default function Orders() {
                           </td>
                           <td className="border-bottom-0">
                             <p className="mb-0 fw-normal">{row['Qty Ordered']}</p>
+                          </td>
+                          <td className="border-bottom-0">
+                            <p className="mb-0 fw-normal">{row['Current_cost']}</p>
                           </td>
                           <td className="border-bottom-0">
                             <p className="mb-0 fw-normal">{row['Material Supplier']}</p>
@@ -117,42 +129,27 @@ export default function Orders() {
             <>
               <p>Item: {selectedItem['Item']}</p>
               <div className="form-group">
-                <label htmlFor="D_Id">Drawing ID</label>
+                <label htmlFor="current_cost">Current Cost</label>
                 <input
                   type="text"
-                  id="D_Id"
+                  id="current_cost"
                   className="form-control"
-                  value={selectedItem['Description']}
+                  value={selectedItem['current_cost']}
                   readOnly
                 />
               </div>
               <div className="form-group">
-                <label htmlFor="d_url">Drawing URL</label>
-                <input
-                  type="text"
-                  id="d_url"
-                  className="form-control"
-                  value={selectedItem['Price']}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="c_cost">Current cost</label>
-                <input
-                  type="text"
-                  id="c_cost"
-                  className="form-control"
-                  value={selectedItem['Price']}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="c_cost">Quantity Ordered</label>
-                <input
-                  type="text"
-                  id="q_ord"
-                  className="form-control"
-                  value={selectedItem['Price']}
-                />
-              </div>
+              <label htmlFor="DeliveryStatus">Delivery Status</label>
+              <select
+                id="DeliveryStatus"
+                className="form-control"
+                value={selectedItem['DeliveryStatus']}
+              >
+                <option value="option1">Delivered</option>
+                <option value="option2">In Transit</option>
+                <option value="option3">Not yet Initiated</option>
+              </select>
+            </div>
               {/* Add more fields as needed */}
             </>
           )}

@@ -17288,3 +17288,7 @@ border-bottom: 2px groove #f7f8f8;
   .text-voilet{
     color:var(--bs-code-color);
   }
+  .horizontal-scrollable > div { 
+            overflow-x: auto; 
+            white-space: nowrap; 
+        } 
