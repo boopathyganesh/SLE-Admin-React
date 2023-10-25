@@ -128,21 +128,11 @@ export default function Orders() {
           {selectedItem && (
             <>
               <p>Item: {selectedItem['Item']}</p>
-              <div className="form-group">
-                <label htmlFor="current_cost">Current Cost</label>
-                <input
-                  type="text"
-                  id="current_cost"
-                  className="form-control"
-                  value={selectedItem['current_cost']}
-                  readOnly
-                />
-              </div>
-              <div className="form-group">
+              <div className="form-group mt-4">
               <label htmlFor="DeliveryStatus">Delivery Status</label>
               <select
                 id="DeliveryStatus"
-                className="form-control"
+                className="form-control mt-4"
                 value={selectedItem['DeliveryStatus']}
               >
                 <option value="option1">Delivered</option>
@@ -157,7 +147,7 @@ export default function Orders() {
 
         <Modal.Footer>
           <Button variant="secondary" onClick={handleModalClose}>
-            Close
+            Update
           </Button>
         </Modal.Footer>
       </Modal>

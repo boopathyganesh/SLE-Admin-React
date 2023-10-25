@@ -49,7 +49,7 @@ async function extractTableData(link) {
           }
         }
       });
-
+      console.log(tableData);
       return tableData;
     } else {
       console.error('Failed to fetch the page.');
@@ -99,33 +99,35 @@ app.post('/insertData', async (req, res) => {
     const db = admin.database();
     const ref = db.ref('Component');
 
-    // Iterate through each item in the tableData array
-    tableData.forEach((itemData) => {
-      // Generate a custom key based on the 'Item' for each item
-      const itemKey = encodeFirebaseKey(`Component_${itemData['Item']}`);
+// Iterate through each item in the tableData array
+  tableData.forEach((itemData) => {
+  // Generate a custom key based on the 'Item' for each item
+  const itemKey = encodeFirebaseKey(`Component_${itemData['Item']}`);
 
-      // Set the data using the custom key for each item
-      ref.child(itemKey).set({
-        'PO Ref': itemData['PO Ref'],
-        Drawing: itemData['Drawing'],
-        Item: itemData['Item'],
-        'Item Rev': itemData['Item Rev'],
-        Buyer : itemData['Buyer'],
-        'Qty Ordered' : itemData['Qty Ordered'],
-        'Qty Due' : itemData['Qty Due'],
-        'Due DatePromised Date' : itemData['Due DatePromised Date'],
-        'Material Supplier' : itemData['Material Supplier'],
-        'Material Available' : itemData['Material Available'],
-        Notes : itemData['Notes'],
-        MaterialRequired: itemData['MaterialRequired'],
-        Current_cost: itemData['Current_cost'],
-        MaterialScrap: itemData['MaterialScrap'],
-        CostLog: itemData['CostLog'],
-        CurrentCost: itemData['CurrentCost'],
-        DrawingFileURL: itemData['DrawingFileURL'],
-      });
-    });
+  // Create an object to store the data for this item
+  const itemDataToInsert = {
+    'PO Ref': itemData['PO Ref'] || '', // Replace null with an empty string
+    Drawing: itemData['Drawing'] || '',
+    Item: itemData['Item'] || '',
+    'Item Rev': itemData['Item Rev'] || '',
+    Buyer: itemData['Buyer'] || '',
+    'Qty Ordered': itemData['Qty Ordered'] || '',
+    'Qty Due': itemData['Qty Due'] || '',
+    'Due DatePromised Date': itemData['Due DatePromised Date'] || '',
+    'Material Supplier': itemData['Material Supplier'] || '',
+    'Material Available': itemData['Material Available'] || '',
+    Notes: itemData['Notes'] || '',
+    MaterialRequired: itemData['MaterialRequired'] || '',
+    Current_cost: itemData['Current_cost'] || '',
+    MaterialScrap: itemData['MaterialScrap'] || '',
+    CostLog: itemData['CostLog'] || '',
+    CurrentCost: itemData['CurrentCost'] || '',
+    DrawingFileURL: itemData['DrawingFileURL'] || '',
+  };
 
+  // Set the data using the custom key for each item
+  ref.child(itemKey).set(itemDataToInsert);
+});
     res.status(200).json({ message: 'Data inserted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
