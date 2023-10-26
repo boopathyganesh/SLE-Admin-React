@@ -90,6 +90,7 @@ const decodeFirebaseKey = (key) => {
   });
 };
 //insert data route
+// API endpoint to insert data into Firebase Realtime Database
 app.post('/insertData', async (req, res) => {
   try {
     const { link } = req.body;
@@ -97,71 +98,117 @@ app.post('/insertData', async (req, res) => {
 
     // Initialize the Firebase Realtime Database reference
     const db = admin.database();
-    const ref = db.ref('Component');
+    const ref = db.ref('PORef');
 
-// Iterate through each item in the tableData array
-  tableData.forEach((itemData) => {
-  // Generate a custom key based on the 'Item' for each item
-  const itemKey = encodeFirebaseKey(`Component_${itemData['Item']}`);
+    // Create a map to group data by PO Ref
+    const groupedData = new Map();
 
-  // Create an object to store the data for this item
-  const itemDataToInsert = {
-    'PO Ref': itemData['PO Ref'] || '', // Replace null with an empty string
-    Drawing: itemData['Drawing'] || '',
-    Item: itemData['Item'] || '',
-    'Item Rev': itemData['Item Rev'] || '',
-    Buyer: itemData['Buyer'] || '',
-    'Qty Ordered': itemData['Qty Ordered'] || '',
-    'Qty Due': itemData['Qty Due'] || '',
-    'Due DatePromised Date': itemData['Due DatePromised Date'] || '',
-    'Material Supplier': itemData['Material Supplier'] || '',
-    'Material Available': itemData['Material Available'] || '',
-    Notes: itemData['Notes'] || '',
-    MaterialRequired: itemData['MaterialRequired'] || '',
-    Current_cost: itemData['Current_cost'] || '',
-    MaterialScrap: itemData['MaterialScrap'] || '',
-    CostLog: itemData['CostLog'] || '',
-    CurrentCost: itemData['CurrentCost'] || '',
-    DrawingFileURL: itemData['DrawingFileURL'] || '',
-  };
+    // Iterate through each item in the tableData array
+    tableData.forEach((itemData) => {
+      // Extract the PO Ref and Main part
+      const [poRef, refValue] = itemData['PO Ref']?.split(' / ') || [];
+      if (poRef) {
+        // Generate a custom key based on the 'Item' for each item
+        const itemKey = encodeFirebaseKey(`Component_${itemData['Item']}`);
 
-  // Set the data using the custom key for each item
-  ref.child(itemKey).set(itemDataToInsert);
-});
+        // Create an object to store the data for this item
+        const itemDataToInsert = {
+          'PO Ref': itemData['PO Ref'] || '',
+          Drawing: itemData['Drawing'] || '',
+          Item: itemData['Item'] || '',
+          'Item Rev': itemData['Item Rev'] || '',
+          Buyer: itemData['Buyer'] || '',
+          'Qty Ordered': itemData['Qty Ordered'] || '',
+          'Qty Due': itemData['Qty Due'] || '',
+          'Due DatePromised Date': itemData['Due DatePromised Date'] || '',
+          'Material Supplier': itemData['Material Supplier'] || '',
+          'Material Available': itemData['Material Available'] || '',
+          Notes: itemData['Notes'] || '',
+          MaterialRequired: itemData['MaterialRequired'] || '',
+          Current_cost: itemData['Current_cost'] || '',
+          MaterialScrap: itemData['MaterialScrap'] || '',
+          CostLog: itemData['CostLog'] || '',
+          CurrentCost: itemData['CurrentCost'] || '',
+          DrawingFileURL: itemData['DrawingFileURL'] || '',
+          DeliveryStatus: itemData['DeliveryStatus'] || '',
+        };
+
+        // Add the item data to the groupedData map
+        if (!groupedData.has(poRef)) {
+          groupedData.set(poRef, []);
+        }
+        groupedData.get(poRef).push(itemDataToInsert);
+      }
+    });
+
+    // Insert the grouped data into Firebase
+    groupedData.forEach((items, poRef) => {
+      // Create a reference for each PO Ref
+      const poRefRef = ref.child(encodeFirebaseKey(`PORef_${poRef}`));
+      
+      // Set the data for the PO Ref
+      poRefRef.set(items);
+    });
+
     res.status(200).json({ message: 'Data inserted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
 
-// Function to fetch data from Firebase
-const fetchDataFromFirebase = async () => {
-  try {
-    const db = admin.database();
-    const ref = db.ref('Component');
-
-    const snapshot = await ref.once('value');
-    return snapshot.val();
-  } catch (error) {
-    throw error;
-  }
-};
-
 // API endpoint to fetch data
 app.get('/api/fetch-data', async (req, res) => {
   try {
     const data = await fetchDataFromFirebase();
-    res.status(200).json(data);
+
+    // Group the data by 'PO Ref'
+    const groupedData = groupDataByPO(data);
+
+    res.status(200).json(groupedData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
+// Function to fetch data from Firebase
+async function fetchDataFromFirebase() {
+  try {
+    const db = admin.database();
+    const ref = db.ref('Component');
+
+    const snapshot = await ref.once('value');
+    const data = snapshot.val();
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// Function to group data by 'PO Ref'
+function groupDataByPO(data) {
+  const groupedData = {};
+
+  Object.values(data).forEach((item) => {
+    const poRef = item['PO Ref']?.split(' / ')[0]; // Add optional chaining here
+
+    if (poRef) {
+      if (!groupedData[poRef]) {
+        groupedData[poRef] = [];
+      }
+
+      groupedData[poRef].push(item);
+    }
+  });
+
+  return groupedData;
+}
 
 //const link = 'https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD'
 //extractTableData(link)

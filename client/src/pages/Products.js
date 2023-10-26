@@ -13,10 +13,6 @@ export default function Products() {
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('Item');
-  const [sortOrder, setSortOrder] = useState('asc');
-
   const handleModalOpen = (item) => {
     setSelectedItem(item);
     setShowModal(true);
@@ -25,28 +21,6 @@ export default function Products() {
   const handleModalClose = () => {
     setShowModal(false);
   };
-
-  const handleSort = (field) => {
-    setSortField(field);
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-  };
-
-  const filteredData = data.filter((item) =>
-    item.Item.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const sortedData = [...filteredData].sort((a, b) => {
-    const aValue = a[sortField].toLowerCase();
-    const bValue = b[sortField].toLowerCase();
-
-    if (aValue < bValue) {
-      return sortOrder === 'asc' ? -1 : 1;
-    }
-    if (aValue > bValue) {
-      return sortOrder === 'asc' ? 1 : -1;
-    }
-    return 0;
-  });
 
   useEffect(() => {
     fetch('http://localhost:3000/api/fetch-data')
@@ -76,12 +50,6 @@ export default function Products() {
                 <h5 className="card-title fw-semibold mb-4 text-voilet">SLE Product Management</h5>
                 <div style={{ maxHeight: "100vh", overflowY: "auto", overflowX: "auto" }}>
                   <div className="table-responsive">
-                    <input
-                      type="text"
-                      placeholder="Search by item..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
                     <table className="table text-nowrap mb-0 align-middle">
                     <thead className="text-dark fs-4">
                       <tr className="text-center">
