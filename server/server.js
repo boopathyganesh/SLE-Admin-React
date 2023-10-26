@@ -144,7 +144,7 @@ app.post('/insertData', async (req, res) => {
     // Insert the grouped data into Firebase
     groupedData.forEach((items, poRef) => {
       // Create a reference for each PO Ref
-      const poRefRef = ref.child(encodeFirebaseKey(`PORef_${poRef}`));
+      const poRefRef = ref.child(encodeFirebaseKey(`${poRef}`));
       
       // Set the data for the PO Ref
       poRefRef.set(items);
