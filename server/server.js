@@ -7,7 +7,7 @@ const serviceAccount = require('./creds/service-account-key.json');
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL: 'https://sledb-29e51-default-rtdb.asia-southeast1.firebasedatabase.app',
+  databaseURL: 'https://sledb-29e51-default-rtdb.asia-southeast1.firebasedatabase.app', 
 });
 
 const app = express();
@@ -49,7 +49,7 @@ async function extractTableData(link) {
           }
         }
       });
-      console.log(tableData);
+
       return tableData;
     } else {
       console.error('Failed to fetch the page.');
@@ -61,35 +61,6 @@ async function extractTableData(link) {
   }
 }
 
-// Route to insert data into Firebase Realtime Database
-const encodeFirebaseKey = (key) => {
-  // Encode the key to replace forbidden characters
-  return key.replace(/[.#$[\]/]/g, (match) => {
-    return {
-      '.': ',',
-      '#': '_',
-      '$': '-',
-      '[': '(',
-      ']': ')',
-      '/': '|'
-    }[match];
-  });
-};
-
-const decodeFirebaseKey = (key) => {
-  // Decode the key to original form
-  return key.replace(/[,_\-()|]/g, (match) => {
-    return {
-      ',': '.',
-      '_': '#',
-      '-': '$',
-      '(': '[',
-      ')': ']',
-      '|': '/'
-    }[match];
-  });
-};
-//insert data route
 // API endpoint to insert data into Firebase Realtime Database
 app.post('/insertData', async (req, res) => {
   try {
@@ -101,7 +72,7 @@ app.post('/insertData', async (req, res) => {
     const ref = db.ref('PORef');
 
     // Create a map to group data by PO Ref
-    const groupedData = new Map();
+    const groupedData = [];
 
     // Iterate through each item in the tableData array
     tableData.forEach((itemData) => {
@@ -109,7 +80,7 @@ app.post('/insertData', async (req, res) => {
       const [poRef, refValue] = itemData['PO Ref']?.split(' / ') || [];
       if (poRef) {
         // Generate a custom key based on the 'Item' for each item
-        const itemKey = encodeFirebaseKey(`Component_${itemData['Item']}`);
+        const itemKey = poRef; // Use the PO Ref as the key
 
         // Create an object to store the data for this item
         const itemDataToInsert = {
@@ -133,21 +104,23 @@ app.post('/insertData', async (req, res) => {
           DeliveryStatus: itemData['DeliveryStatus'] || '',
         };
 
-        // Add the item data to the groupedData map
-        if (!groupedData.has(poRef)) {
-          groupedData.set(poRef, []);
+        // Add the item data to the groupedData array
+        const poRefIndex = groupedData.findIndex((group) => group.poRef === poRef);
+        if (poRefIndex === -1) {
+          groupedData.push({ poRef, items: [itemDataToInsert] });
+        } else {
+          groupedData[poRefIndex].items.push(itemDataToInsert);
         }
-        groupedData.get(poRef).push(itemDataToInsert);
       }
     });
 
     // Insert the grouped data into Firebase
-    groupedData.forEach((items, poRef) => {
+    groupedData.forEach((group) => {
       // Create a reference for each PO Ref
-      const poRefRef = ref.child(encodeFirebaseKey(`${poRef}`));
-      
+      const poRefRef = ref.child(group.poRef);
+
       // Set the data for the PO Ref
-      poRefRef.set(items);
+      poRefRef.set(group.items);
     });
 
     res.status(200).json({ message: 'Data inserted successfully' });
@@ -156,21 +129,12 @@ app.post('/insertData', async (req, res) => {
   }
 });
 
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
 // API endpoint to fetch data
 app.get('/api/fetch-data', async (req, res) => {
   try {
     const data = await fetchDataFromFirebase();
 
-    // Group the data by 'PO Ref'
-    const groupedData = groupDataByPO(data);
-
-    res.status(200).json(groupedData);
+    res.status(200).json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -180,7 +144,7 @@ app.get('/api/fetch-data', async (req, res) => {
 async function fetchDataFromFirebase() {
   try {
     const db = admin.database();
-    const ref = db.ref('Component');
+    const ref = db.ref('PORef');
 
     const snapshot = await ref.once('value');
     const data = snapshot.val();
@@ -191,75 +155,8 @@ async function fetchDataFromFirebase() {
   }
 }
 
-// Function to group data by 'PO Ref'
-function groupDataByPO(data) {
-  const groupedData = {};
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
 
-  Object.values(data).forEach((item) => {
-    const poRef = item['PO Ref']?.split(' / ')[0]; // Add optional chaining here
-
-    if (poRef) {
-      if (!groupedData[poRef]) {
-        groupedData[poRef] = [];
-      }
-
-      groupedData[poRef].push(item);
-    }
-  });
-
-  return groupedData;
-}
-
-//const link = 'https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD'
-//extractTableData(link)
-
-
-
-// async function extractTableData(link) {
-//   try {
-//     const response = await axios.get(link);
-//     if (response.status === 200) {
-//       const $ = cheerio.load(response.data);
-
-//       // Find the table by any means (class, ID, or any selector).
-//       const table = $('table'); // You can use a specific selector here if needed.
-
-//       const tableData = [];
-
-//       table.find('tr').each((rowIndex, row) => {
-//         const columns = $(row).find('td'); // You can change 'td' to 'th' or other selectors if needed.
-
-//         if (columns.length > 0) {
-//           const rowData = {};
-
-//           columns.each((colIndex, column) => {
-//             rowData[`Column ${colIndex + 1}`] = $(column).text().trim();
-//           });
-
-//           tableData.push(rowData);
-//         }
-//       });
-
-//       return tableData;
-//     } else {
-//       console.error('Failed to fetch the page.');
-//       return null;
-//     }
-//   } catch (error) {
-//     console.error('Error:', error);
-//     return null;
-//   }
-// }
-
-// // Example usage:
-// extractTableData('https://www.valves.co.uk/vendor/link.php?link=Msd5OEAEWGBH8No6O6cD')
-//   .then((result) => {
-//     if (result) {
-//       console.log('Table Data:', result);
-//     } else {
-//       console.log('No data extracted.');
-//     }
-//   })
-//   .catch((error) => {
-//     console.error('Error:', error);
-//   });
