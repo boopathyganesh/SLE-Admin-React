@@ -62,6 +62,7 @@ async function extractTableData(link) {
 }
 
 // API endpoint to insert data into Firebase Realtime Database
+// API endpoint to insert data into Firebase Realtime Database
 app.post('/insertData', async (req, res) => {
   try {
     const { link } = req.body;
@@ -82,6 +83,21 @@ app.post('/insertData', async (req, res) => {
         // Generate a custom key based on the 'Item' for each item
         const itemKey = poRef; // Use the PO Ref as the key
 
+        // Split "Due DatePromised Date" into "Due Date" and "Promised Date"
+        const datePromised = itemData['Due DatePromised Date'];
+        let dueDate, promisedDate;
+
+        if (datePromised.length >= 16) {
+          dueDate = datePromised.substring(0, 10);
+          promisedDate = datePromised.substring(10, 20);
+        } else if (datePromised.length >= 8) {
+          dueDate = datePromised.substring(0, 8);
+          promisedDate = '';
+        } else {
+          dueDate = '';
+          promisedDate = '';
+        }
+
         // Create an object to store the data for this item
         const itemDataToInsert = {
           'PO Ref': itemData['PO Ref'] || '',
@@ -90,8 +106,8 @@ app.post('/insertData', async (req, res) => {
           'Item Rev': itemData['Item Rev'] || '',
           Buyer: itemData['Buyer'] || '',
           'Qty Ordered': itemData['Qty Ordered'] || '',
-          'Qty Due': itemData['Qty Due'] || '',
-          'Due DatePromised Date': itemData['Due DatePromised Date'] || '',
+          'Due Date': dueDate,  // Use sliced "Due Date"
+          'Promised Date': promisedDate,  // Use sliced "Promised Date"
           'Material Supplier': itemData['Material Supplier'] || '',
           'Material Available': itemData['Material Available'] || '',
           Notes: itemData['Notes'] || '',
@@ -128,6 +144,8 @@ app.post('/insertData', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+
 
 // API endpoint to fetch data
 app.get('/api/fetch-data', async (req, res) => {
