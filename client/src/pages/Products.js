@@ -1,180 +1,100 @@
 import { useEffect, useState } from 'react';
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import '../styles/globals.css';
 
-export default function Products() {
-  const [data, setData] = useState([]); // State to hold the fetched data
+export default function Orders() {
+  const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [uniqueItems, setUniqueItems] = useState([]);
 
-  const handleModalOpen = (item) => {
-    setSelectedItem(item);
-    setShowModal(true);
+  // Function to fetch unique 'Item' values from the server
+  const fetchUniqueItems = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/api/fetch-unique-items');
+      if (response.status === 200) {
+        const items = await response.json();
+        setUniqueItems(items);
+      }
+    } catch (error) {
+      console.error('Error fetching unique items:', error);
+    }
   };
 
-  const handleModalClose = () => {
-    setShowModal(false);
-  };
   useEffect(() => {
-    // Fetch data from your API
-    fetch('http://sle-server.vercel.app:3000/api/fetch-data') // Replace with your API endpoint
-      .then(response => response.json())
-      .then(data => {
-        // Convert the object to an array of objects
-        const dataArray = Object.keys(data).map(key => ({
-          key,
-          ...data[key]
-        }));
-        setData(dataArray); // Set the fetched data to the state
+    // Fetch data from your server
+    fetch('http://localhost:3000/api/fetch-data')
+      .then((response) => response.json())
+      .then((data) => {
+        setData(data);
+        setLoading(false);
       })
-      .catch(error => console.error('Error fetching data:', error));
+      .catch((error) => {
+        setError(error);
+        setLoading(false);
+      });
+
+    // Fetch unique 'Item' values
+    fetchUniqueItems();
   }, []);
+
+  // Handle when an 'Item' is selected from the dropdown
+  const handleItemSelect = (selectedValue) => {
+    setSelectedItem(selectedValue);
+  };
+
+  // Filter and map the details based on the selected 'Item'
+  const filteredItems = selectedItem ? data[selectedItem] || [] : [];
 
   return (
     <div className="body-wrapper">
       <Navbar />
       <div className="container-fluid">
-        <div className="row">
-          <div className="col-lg-12 d-flex align-items-stretch">
-            <div className="card w-100">
-              <div className="card-body p-4">
-                <h5 className="card-title fw-semibold mb-4 text-voilet">SLE Product Management</h5>
-                <div style={{ maxHeight: "100vh", overflowY: "auto", overflowX: "auto"}}> 
-                <div className="table-responsive">
-                  <table className="table text-nowrap mb-0 align-middle">
-                    <thead className="text-dark fs-4">
-                      <tr class="text-center">
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Item</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Buyer</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Drawing</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Drawing_URL</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Qty Ordered</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Due Date / Promised Date</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Material Supplier</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Material Available</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Current_cost</h6>
-                        </th>
-                        <th className="border-bottom-0">
-                          <h6 className="fw-semibold mb-0">Notes</h6>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.map((row, index) => (
-                        <tr key={index}>
-                          <td className="border-bottom-0">
-                            <a href="#" className="fw-semibold mb-0" onClick={() => handleModalOpen(row)}>
-                              {row['Item']}
-                            </a>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Buyer']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Drawing']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Drawing_URL']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Qty Ordered']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Due DatePromised Date']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Material Supplier']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Material Available']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Current_cost']}</p>
-                          </td>
-                          <td className="border-bottom-0">
-                            <p className="mb-0 fw-normal">{row['Notes']}</p>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        <h5 className="card-title fw-semibold mb-4 text-voilet text-center">SLE Order Management</h5>
+
+        {/* Dropdown for selecting 'Item' based on unique values */}
+        <div className="form-group mt-3">
+          <label htmlFor="itemDropdown" className="select text-danger mb-3">Select Item:</label>
+          <select
+            id="itemDropdown"
+            className="form-control"
+            value={selectedItem}
+            onChange={(e) => handleItemSelect(e.target.value)}
+          >
+            <option value="">-- Select an Item --</option>
+            {uniqueItems.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Table for displaying details based on the selected 'Item' */}
+        <div className="table-responsive">
+          <table className="table text-nowrap mb-0 align-middle">
+            {/* Table headers here */}
+            <thead className="text-center fs-4">
+              {/* ... (headers as in your original code) */}
+            </thead>
+            <tbody>
+              {filteredItems.map((row, index) => (
+                <tr key={index}>
+                  {/* ... (rest of the rows as in your original code) */}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
       <Footer />
-      <Modal show={showModal} onHide={handleModalClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>Item Details</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedItem && (
-            <>
-              <p>Item: {selectedItem['Item']}</p>
-              <div className="form-group">
-                <label htmlFor="Drawing">Drawing ID</label>
-                <input
-                  type="text"
-                  id="Drawing"
-                  className="form-control"
-                  value={selectedItem['Drawing']}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="DrawingFileURL">Drawing URL</label>
-                <input
-                  type="text"
-                  id="DrawingFileURL"
-                  className="form-control"
-                  value={selectedItem['DrawingFileURL']}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="Current_cost">Current Cost</label>
-                <input
-                  type="number"
-                  id="Current_cost"
-                  className="form-control"
-                  value={selectedItem['Current_cost']}
-                />
-              </div>
-              {/* Add more fields as needed */}
-            </>
-          )}
-        </Modal.Body>
 
-        <Modal.Footer>
-          <Button variant="secondary" onClick={'http://localhost:3000/api/fetch-data'}>
-            Update
-          </Button>
-        </Modal.Footer>
-      </Modal>
+      {/* ... (existing code for the item details modal) */}
     </div>
   );
 }
