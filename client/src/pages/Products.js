@@ -23,7 +23,7 @@ export default function Products() {
   };
   useEffect(() => {
     // Fetch data from your API
-    fetch('https://sle-server.vercel.app/api/fetch-data') // Replace with your API endpoint
+    fetch('https://sle-server.vercel.app:3000/api/fetch-data') // Replace with your API endpoint
       .then(response => response.json())
       .then(data => {
         // Convert the object to an array of objects
