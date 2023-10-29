@@ -17291,4 +17291,8 @@ border-bottom: 2px groove #f7f8f8;
   .horizontal-scrollable > div { 
             overflow-x: auto; 
             white-space: nowrap; 
-        } 
+        }
+  .form-group .select {
+    font-size:17px;
+    font-weight: 600;
+  }
