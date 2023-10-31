@@ -17,56 +17,67 @@ const Home = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
 
   const [show, setShow] = useState(false);
+  const [vendorLink, setVendorLink] = useState("");
+  const [linkStatus, setLinkStatus] = useState(""); // New state to store link status
 
-  // Function to close the modal
   const closeModal = () => {
     setShow(false);
   };
 
-  // Add additional logic for verification
-  const handleVerification = () => {
-    // Add your verification logic here
+  const handleClose = () => setShow(false);
 
-    // If verification is successful, close the modal
-    closeModal();
-  };
-
-  // Open the modal when the page loads
   useEffect(() => {
-    // You can add your own logic for when to open the modal
-    // For now, it will open immediately after 1 second
-    setTimeout(() => {
-      setShow(true);
-    }, 1000);
+    // Function to check the link status in Firebase
+    const checkLinkStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/fetch-link'); // Define an API endpoint to fetch the link status
+        const data = await response.json();
+
+        console.log(data.linkStatus)
+
+        if (data.linkStatus === "expired" || data.linkStatus === "not_found") {
+          // Set the link status to determine whether to show the modal
+          setLinkStatus(data.linkStatus);
+
+          // Open the modal when the link is expired or not found
+          setShow(true);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    checkLinkStatus();
   }, []);
 
-  const handleClose = () => setShow(false);
+  const handleUpload = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/store-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ link: vendorLink }),
+      });
+
+      console.log('Response:', response);
+
+      if (response.status === 200) {
+        console.log('Vendor Link was stored successfully.');
+      } else if (response.status === 400) {
+        console.error('The Vendor Link is not working.');
+      } else {
+        console.error('Error occurred while storing the Vendor Link.');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+
+    setShow(false);
+  };
 
   return (
     <div className="body-wrapper">
-      {/* Modal */}
-      {/* <div className={`modal ${isModalOpen ? 'show' : ''}`} tabIndex="-1">
-        <div className="modal-dialog">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">Modal Title</h5>
-              <button type="button" className="btn-close" onClick={closeModal}></button>
-            </div>
-            <div className="modal-body">
-              <label htmlFor="textInput">Label:</label>
-              <input type="text" id="textInput" className="form-control" />
-            </div>
-            <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                Close
-              </button>
-              <button type="button" className="btn btn-primary">
-                Save changes
-              </button>
-            </div>
-          </div>
-        </div>
-      </div> */}
       <Modal show={show} onHide={handleClose} backdrop="static" keyboard={false} centered size="lg">
         <Modal.Header closeButton>
           <Modal.Title>Provide the Latest Vendor link</Modal.Title>
@@ -77,19 +88,23 @@ const Home = () => {
             type="text"
             id="vendorLink"
             aria-describedby="HelpBlock"
+            value={vendorLink}
+            onChange={(e) => setVendorLink(e.target.value)}
           />
           <Form.Text id="HelpBlock" muted>
-            <span className="text-danger">The Vendor Link was expired!</span><br />
-             Please type the latest vendor link on the above input field.
+            {linkStatus === "expired" ? (
+              <span className="text-danger">The Vendor Link was expired!</span>
+            ) : (
+              <span>Please type the latest vendor link in the above input field.</span>
+            )}
           </Form.Text>
         </Modal.Body>
         <Modal.Footer className="d-flex justify-content-center">
-          <Button variant="success" onClick={handleClose}>
+          <Button variant="success" onClick={handleUpload}>
             Upload
           </Button>
         </Modal.Footer>
       </Modal>
-      {/* Modal */}
       <Navbar toggleSidebar={toggleSidebar} />
       <Container fluid>
         <Row>

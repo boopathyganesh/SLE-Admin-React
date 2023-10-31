@@ -11,7 +11,7 @@ export default function Orders() {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedPoRef, setSelectedPoRef] = useState(null);
+  const [selectedPoRef, setSelectedPoRef] = useState('');
   const [selectedDueDate, setSelectedDueDate] = useState('');
   const [selectedPromisedDate, setSelectedPromisedDate] = useState('');
 
@@ -54,14 +54,49 @@ export default function Orders() {
   const filterData = () => {
     if (!selectedPoRef) {
       // If no PO Ref is selected, filter data based on selectedDueDate and selectedPromisedDate
-      return data[selectedDueDate + selectedPromisedDate] || [];
+      return data[selectedDueDate + selectedPromisedDate] || {};
     }
 
     // If a PO Ref is selected, filter data based on the selected PO Ref
-    return data[selectedPoRef] || [];
+    return data[selectedPoRef] || {};
   };
 
   const filteredDetails = filterData();
+
+
+  const handleUpdateDeliveryStatus = () => {
+    if (selectedItem) {
+      const { DeliveryStatus, 'PO Ref': poRef } = selectedItem;
+      console.log(DeliveryStatus)
+
+  
+      // Create an object to send in the request
+      const updateData = {
+        poRef,
+        deliveryStatus: DeliveryStatus,
+        selectedPoRef:selectedPoRef
+      };
+  
+      // Make an HTTP POST request to update the Delivery Status
+      fetch('http://localhost:3000/updateDeliveryStatus', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData), // Send the updateData object
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data.message); // Log the success message
+          // You can also update the local state if needed
+        })
+        .catch((error) => {
+          console.error('Error updating Delivery Status:', error);
+          // Log the error for debugging
+        });
+    }
+  };
+  
 
   return (
     <div className="body-wrapper">
@@ -87,123 +122,101 @@ export default function Orders() {
               ))}
             </select>
           </div>
-
-          <div className="form-group mt-3 col-md-4">
-            <label htmlFor="dueDateDropdown" className="select text-danger mb-3">
-              Select Due Date:
-            </label>
-            <input
-              type="date"
-              id="dueDateDropdown"
-              className="form-control"
-              value={selectedDueDate}
-              onChange={(e) => setSelectedDueDate(e.target.value)}
-            />
-          </div>
-
-          <div className="form-group mt-3 col-md-4">
-            <label htmlFor="promisedDateDropdown" className="select text-danger mb-3">
-              Select Promised Date:
-            </label>
-            <input
-              type="date"
-              id="promisedDateDropdown"
-              className="form-control"
-              value={selectedPromisedDate}
-              onChange={(e) => setSelectedPromisedDate(e.target.value)}
-            />
-          </div>
         </div>
-        <div className="table-responsive">
+        <div className="table-responsive mt-9">
           <table className="table text-nowrap mb-0 align-middle">
             <thead className="text-center fs-4">
-            <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">PO Ref</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Component</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Drawing</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Item Rev</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Buyer</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Qty Ordered</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Current_cost</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Due Date</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Promised Date</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">DeliveryStatus</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Material Supplier</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Material Available</h6>
-              </th>
-              <th className="border-bottom-0">
-                <h6 className="fw-semibold mb-0">Notes</h6>
-              </th>
+              <tr>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">PO Ref</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Component</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Drawing</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Item Rev</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Buyer</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Qty Ordered</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Current_cost</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Due Date</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Promised Date</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">DeliveryStatus</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Material Supplier</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Material Available</h6>
+                </th>
+                <th className="border-bottom-0">
+                  <h6 className="fw-semibold mb-0">Notes</h6>
+                </th>
+              </tr>
             </thead>
             <tbody>
-              {filteredDetails.map((row, index) => (
-                <tr key={index}>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['PO Ref']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <a className="fw-semibold mb-0" onClick={() => handleModalOpen(row)}>
-                      {row['Item']}
-                    </a>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Drawing']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Item Rev']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Buyer']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Qty Ordered']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Current_cost']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Due Date']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Promised Date']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['DeliveryStatus']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Material Supplier']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Material Available']}</p>
-                  </td>
-                  <td className="border-bottom-0">
-                    <p className="mb-0 fw-normal">{row['Notes']}</p>
-                  </td>
-                  {/* Render table rows here */}
-                </tr>
-              ))}
+              {Object.keys(filteredDetails).map((poRef, index) => {
+                const row = filteredDetails[poRef];
+                return (
+                  <tr key={index}>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{poRef}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <a className="fw-semibold mb-0" onClick={() => handleModalOpen(row)}>
+                        {row['Item']}
+                      </a>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Drawing']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Item Rev']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Buyer']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Qty Ordered']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Current_cost']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Due Date']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Promised Date']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['DeliveryStatus']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Material Supplier']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Material Available']}</p>
+                    </td>
+                    <td className="border-bottom-0">
+                      <p className="mb-0 fw-normal">{row['Notes']}</p>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -224,10 +237,15 @@ export default function Orders() {
                   id="DeliveryStatus"
                   className="form-control mt-4"
                   value={selectedItem['DeliveryStatus']}
+                  onChange={(e) => {
+                    const updatedItem = { ...selectedItem, DeliveryStatus: e.target.value };
+                    setSelectedItem(updatedItem);
+                  }}
                 >
-                  <option value="option1">Delivered</option>
-                  <option value="option2">In Transit</option>
-                  <option value="option3">Not yet Initiated</option>
+                  <option value="">-- Select Status --</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="In Transit">In Transit</option>
+                  <option value="Not yet Initiated">Not yet Initiated</option>
                 </select>
               </div>
               {/* Add more fields as needed */}
@@ -236,6 +254,9 @@ export default function Orders() {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleModalClose}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleUpdateDeliveryStatus}>
             Update
           </Button>
         </Modal.Footer>
